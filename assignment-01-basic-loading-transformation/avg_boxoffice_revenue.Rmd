@@ -1,0 +1,67 @@
+---
+title: "Assignment 1 - Movie Box Office Analysis"
+author: "Marlon Nurse"
+date: "2026-09-03"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Overview
+
+This analysis explores how movie genre relates to box office performance using a dataset of approximately 5,000 movies released between 2000 and 2025. The goal is to determine which genres tend to generate the highest box office revenue and to create a cleaner subset of the original data for analysis. Original Link: https://www.kaggle.com/datasets/arezazare/imdb-popular-movies-with-tmdb-enrichment/data
+
+## Load the Data
+
+```{r}
+movies <- read.csv("https://raw.githubusercontent.com/mj-nurse/mnurse-data_607/refs/heads/main/assignment-01-basic-loading-transformation/movies.csv")
+
+head(movies)
+dim(movies)
+names(movies)
+```
+## Data Transformation
+
+```{r}
+movie_data <- movies[, c("Title", "Year", "Genres", "Rating", "Budget", "Revenue")]
+
+names(movie_data) <- c(
+  "Movie_Title",
+  "Release_Year",
+  "Genres",
+  "IMDb_Rating",
+  "Budget",
+  "Box_Office_Revenue"
+)
+
+head(movie_data)
+```
+
+## Box Office Performance by Genre
+
+```{r}
+library(dplyr)
+library(tidyr)
+
+genre_box_office <- movie_data %>%
+  filter(!is.na(Box_Office_Revenue), Box_Office_Revenue > 0) %>%
+  separate_rows(Genres, sep = ",") %>%
+  mutate(Genres = trimws(Genres)) %>%
+  group_by(Genres) %>%
+  summarise(
+    Movie_Count = n(),
+    Average_Box_Office_Revenue = mean(Box_Office_Revenue),
+    .groups = "drop"
+  ) %>%
+  arrange(desc(Average_Box_Office_Revenue))
+
+genre_box_office
+```
+
+## Conclusions / Findings & Recommendations
+
+Based on the dataset, Animation had the highest average box office revenue at approximately 303.6 million dollars per movie, followed closely by Adventure at approximately 301.3 million dollars. Sci-Fi also performed strongly in 3rd place with an average box office revenue of about $237.2 million.
+
+These results suggest that Animation and Adventure tend to perform especially well at the box office within the 21st century. However, the number of movies varies considerably across genres, so future analysis could compare median revenue, examine profitability relative to budget, or if I wanted to take it to the next level, study how genre performance has changed over time.

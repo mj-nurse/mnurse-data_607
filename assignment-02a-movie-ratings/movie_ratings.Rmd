@@ -1,0 +1,45 @@
+---
+title: "R_movie_ratings"
+author: "Marlon Nurse"
+date: "2026-09-12"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+## Connect Data / CSV files 
+
+```{r}
+ratings_df <- read.csv(
+  "https://raw.githubusercontent.com/mj-nurse/mnurse-data_607/refs/heads/main/assignment-02a-movie-ratings/movie_ratings.csv",
+  na.strings = c("", "NULL")
+)
+
+head(ratings_df)
+```
+
+
+## Calculating Results 
+```{r}
+library(dplyr)
+
+movie_summary <- ratings_df %>%
+  group_by(title) %>%
+  summarise(
+    rating_count = sum(!is.na(rating)),
+    missing_ratings = sum(is.na(rating)),
+    average_rating = round(mean(rating, na.rm = TRUE), 2)
+  ) %>%
+  arrange(desc(average_rating))
+
+movie_summary
+```
+
+## Conclusion 
+
+Participants who selected "Not Seen" were stored as missing values rather than assigning them a numeric rating. In R, these values are represented as `NA`. When calculating average ratings, I used only actual ratings from 1 through 5 were included in the calculation. This prevents a movie from receiving an artificially low score simply because a participant had not seen it. So in conclusion of my data, the people voted The Odyssey as the best movie of the 6 with an average of 4.15 / 5. While, Backrooms scored the lowest on average with a score of 3.10 / 5. Fun fact, Obsession & Spider-Man were tied for the most watched/rated movie with 18 / 22 ratings. 
+
+

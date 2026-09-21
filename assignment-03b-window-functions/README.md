@@ -7,4 +7,4 @@ SQL window functions were used to calculate:
 - Year-to-date average closing price for each stock
 - Six-day moving average closing price for each stock
 
-The complete SQL code used to create the dataset and calculate both averages is included in `assignment_03b_window_functions.sql`.
+The complete SQL code used to create the dataset and calculate both averages is included in `create_db.sql` and `window_functions.sql`.

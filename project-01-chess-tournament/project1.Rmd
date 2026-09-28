@@ -1,0 +1,153 @@
+---
+title: "Project 1 - Chess Tournament"
+author: "Marlon Nurse"
+date: "2026-09-24"
+output:
+  html_document: default
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Load the Tournament Data
+```{r}
+tournament <- readLines(
+  "https://raw.githubusercontent.com/mj-nurse/mnurse-data_607/refs/heads/main/project-01-chess-tournament/tournamentinfo.txt"
+)
+
+head(tournament, 10)
+```
+## Extract Player Information
+```{r}
+# Number of players in the tournament
+n_players <- 64
+
+# Create an empty data frame for the player information
+players <- data.frame(
+  Pair_Num = integer(n_players),
+  Player_Name = character(n_players),
+  Player_State = character(n_players),
+  Total_Points = numeric(n_players),
+  Pre_Rating = integer(n_players)
+)
+
+# Create an empty matrix for the 7 opponents
+opponents <- matrix(
+  NA_integer_,
+  nrow = n_players,
+  ncol = 7
+)
+
+colnames(opponents) <- paste0("Round_", 1:7)
+
+# Go through each player
+for (i in 1:n_players) {
+
+  # Each player has two lines followed by a separator
+  player_line <- tournament[5 + (i - 1) * 3]
+  detail_line <- tournament[6 + (i - 1) * 3]
+
+  # Split the lines at each |
+  player_parts <- strsplit(player_line, "|", fixed = TRUE)[[1]]
+  detail_parts <- strsplit(detail_line, "|", fixed = TRUE)[[1]]
+
+  # Extract basic player information
+  players$Pair_Num[i] <- as.integer(trimws(player_parts[1]))
+  players$Player_Name[i] <- trimws(player_parts[2])
+  players$Total_Points[i] <- as.numeric(trimws(player_parts[3]))
+  players$Player_State[i] <- trimws(detail_parts[1])
+
+  # Extract the pre-tournament rating
+  rating <- strsplit(detail_parts[2], "R:", fixed = TRUE)[[1]][2]
+  rating <- strsplit(rating, "->", fixed = TRUE)[[1]][1]
+  rating <- strsplit(trimws(rating), "P", fixed = TRUE)[[1]][1]
+
+  players$Pre_Rating[i] <- as.integer(trimws(rating))
+
+  # Extract opponent numbers from each round
+  for (round in 1:7) {
+
+    round_text <- trimws(player_parts[3 + round])
+
+    if (nchar(round_text) > 1) {
+
+      opponent_number <- trimws(
+        substr(round_text, 2, nchar(round_text))
+      )
+
+      opponents[i, round] <- as.integer(opponent_number)
+
+    } else {
+
+      opponents[i, round] <- NA
+    }
+  }
+}
+
+# Show the first few results
+head(players)
+head(opponents)
+```
+## Look Up Scores
+```{r}
+# Create a new column for average opponent rating
+players$Average_Opponent_Rating <- NA
+
+# Go through each player
+for (i in 1:n_players) {
+
+  # Get this player's opponent numbers
+  opponent_numbers <- opponents[i, ]
+
+  # Remove rounds where there was no opponent
+  opponent_numbers <- opponent_numbers[!is.na(opponent_numbers)]
+
+  # Create a place to store the opponent ratings
+  opponent_ratings <- numeric(length(opponent_numbers))
+
+  # Look up each opponent's pre-tournament rating
+  for (j in 1:length(opponent_numbers)) {
+
+    opponent_row <- match(
+      opponent_numbers[j],
+      players$Pair_Num
+    )
+
+    opponent_ratings[j] <- players$Pre_Rating[opponent_row]
+  }
+
+  # Calculate the average opponent rating
+  players$Average_Opponent_Rating[i] <- round(
+    mean(opponent_ratings)
+  )
+}
+
+# Keep only the columns required for the assignment
+final_results <- players[, c(
+  "Player_Name",
+  "Player_State",
+  "Total_Points",
+  "Pre_Rating",
+  "Average_Opponent_Rating"
+)]
+
+head(final_results)
+```
+## Import to CSV
+```{r}
+write.csv(
+  final_results,
+  "chess_tournament_results.csv",
+  row.names = FALSE
+)
+
+# Final checks
+nrow(final_results)
+head(final_results)
+tail(final_results)
+```
+## Conclusion
+
+The tournament text file was transformed into a structured dataset containing each player's name, state, total points, pre-tournament rating, and average opponent pre-rating. The final dataset contains 64 players and was exported to a CSV file.

@@ -1,0 +1,97 @@
+---
+title: "assignment_05a_airline_delays.Rmd"
+author: "Marlon Nurse"
+date: "2026-10-03"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Load the Data
+```{r}
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+
+airlines <- read.csv(
+  "https://raw.githubusercontent.com/mj-nurse/mnurse-data_607/refs/heads/main/assignment-05a-tidying-data/airline_delays.csv",
+  na.strings = ""
+)
+
+airlines <- airlines %>%
+  fill(Airline)
+
+airlines
+```
+## Tidy the Data
+```{r}
+airlines_long <- airlines %>%
+  pivot_longer(
+    cols = Los_Angeles:Seattle,
+    names_to = "City",
+    values_to = "Flights"
+  )
+
+airlines_long
+```
+## Overall Airline Performance
+```{r}
+overall_summary <- airlines_long %>%
+  group_by(Airline, Status) %>%
+  summarise(
+    Total_Flights = sum(Flights),
+    .groups = "drop"
+  ) %>%
+  group_by(Airline) %>%
+  mutate(
+    Percentage = round(
+      Total_Flights / sum(Total_Flights) * 100,
+      2
+    )
+  )
+
+overall_summary
+```
+Findings: AM West had the better on-time performance, with about 89.11% of flights arriving on time compared with 86.73% for Alaska.
+
+## Performance by City
+```{r}
+city_summary <- airlines_long %>%
+  group_by(Airline, City, Status) %>%
+  summarise(
+    Total_Flights = sum(Flights),
+    .groups = "drop"
+  ) %>%
+  group_by(Airline, City) %>%
+  mutate(
+    Percentage = round(
+      Total_Flights / sum(Total_Flights) * 100,
+      2
+    )
+  )
+
+city_summary
+```
+Findings: When the airlines were compared within each city, Alaska had a higher on-time percentage than AM West in all five cities.
+
+## Comparing On-Time Performance by City
+```{r}
+on_time_city <- city_summary %>%
+  filter(Status == "on time")
+
+ggplot(
+  on_time_city,
+  aes(x = City, y = Percentage, fill = Airline)
+) +
+  geom_col(position = "dodge") +
+  labs(
+    title = "On-Time Percentage by City and Airline",
+    x = "City",
+    y = "On-Time Percentage"
+  )
+```
+## Conclusion 
+
+Overall, AM West had a higher on-time percentage than Alaska, but Alaska performed better in every individual city. This happened because the two airlines had very different numbers of flights in each city, which affected the overall percentages. AM West had many flights in Phoenix, where on-time performance was high, while Alaska had many flights in Seattle, where the rate was lower. This is an example of Simpson’s paradox, where the overall trend is different from the trends within separate groups.

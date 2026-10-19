@@ -1,0 +1,53 @@
+---
+title: "Week 7 - HTML & JSON"
+author: "Marlon Nurse"
+date: "2026-10-16"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Marvel Cinematic Universe Books
+
+For this assignment, I created the same dataset of three Marvel Cinematic Universe books in both HTML and JSON formats. The dataset includes each book's title, authors, publication year, publisher, and ISBN.
+
+```{r}
+library(rvest)
+library(jsonlite)
+```
+
+```{r}
+html_url <- "https://raw.githubusercontent.com/mj-nurse/mnurse-data_607/refs/heads/main/assignment-06-html-json/books.html"
+
+html_books <- read_html(html_url) %>%
+  html_table(convert = FALSE) %>%
+  .[[1]]
+
+html_books <- as.data.frame(html_books)
+
+html_books
+```
+
+```{r}
+json_url <- "https://raw.githubusercontent.com/mj-nurse/mnurse-data_607/refs/heads/main/assignment-06-html-json/books.json"
+
+json_books <- fromJSON(json_url)
+
+json_books <- as.data.frame(json_books)
+
+json_books
+```
+
+```{r}
+identical(html_books, json_books)
+all.equal(html_books, json_books)
+```
+
+## Conclusion 
+
+Both the HTML and JSON files were successfully loaded into separate R data frames. The identical() and all.equal() functions both returned TRUE, confirming that the two files contained the same data. This shows that the same dataset can be represented in different formats and still be imported consistently into R.
+
+
+
